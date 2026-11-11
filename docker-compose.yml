@@ -1,0 +1,15 @@
+# Single-node Apache Kafka in KRaft mode (no ZooKeeper).
+# The official image's default configuration runs one combined broker+controller
+# and advertises PLAINTEXT://localhost:9092, so the Python code on your laptop
+# connects to localhost:9092.
+services:
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: wikistream-kafka
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 10s
+      retries: 20

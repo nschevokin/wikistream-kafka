@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "wikistream-kafka"
+version = "0.1.0"
+description = "A small, explained Kafka streaming pipeline over live Wikimedia edits, landing in DuckDB with at-least-once delivery and an idempotent sink."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Nikita Chevokin" }]
+requires-python = ">=3.11"
+dependencies = [
+    "confluent-kafka>=2.13",
+    "duckdb>=1.1",
+    "requests>=2.31",
+    "pytz",  # DuckDB needs it to return TIMESTAMPTZ values to Python
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "mypy>=1.10",
+    "types-requests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wikistream"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: needs a running Kafka broker on localhost:9092 (make up)",
+]
+addopts = "-m 'not integration'"
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+mypy_path = "src"
