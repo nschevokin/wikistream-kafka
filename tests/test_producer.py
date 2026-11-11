@@ -27,3 +27,16 @@ def test_dead_letter_keeps_raw_payload_and_reason() -> None:
     assert routed.topic == "dlq"
     assert routed.value == b"{not json"
     assert routed.headers[0][0] == "error"
+
+
+def test_sample_events_have_unique_ids_and_all_reach_the_sink(sample_lines: list[str]) -> None:
+    """Guards the fixture: duplicate event_ids would be silently collapsed by the sink."""
+    from wikistream.sink import DuckDBSink, Record
+
+    events = []
+    for offset, line in enumerate(sample_lines):
+        routed = route(line, "main", "dlq")
+        if routed is not None and routed.topic == "main":
+            events.append(Record(EditEvent.from_bytes(routed.value), partition=0, offset=offset))
+    assert len({r.event.event_id for r in events}) == VALID_IN_SAMPLE
+    assert DuckDBSink(":memory:").write(events) == VALID_IN_SAMPLE
